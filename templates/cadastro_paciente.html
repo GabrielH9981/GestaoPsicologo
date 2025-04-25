@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Pacientes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h2 class="my-4">Cadastro de Paciente</h2>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome</label>
+                <input type="text" class="form-control" id="nome" name="nome" required>
+            </div>
+            <div class="mb-3">
+                <label for="data_nascimento" class="form-label">Data de Nascimento</label>
+                <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" required>
+            </div>
+            <div class="mb-3">
+                <label for="telefone" class="form-label">Telefone</label>
+                <input type="text" class="form-control" id="telefone" name="telefone" required>
+            </div>
+            <div class="mb-3">
+                <label for="valor_sessao" class="form-label">Valor da Sessão</label>
+                <input type="text" class="form-control" id="valor_sessao" name="valor_sessao" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-check-label">Pacote Mensal?</label>
+                <input type="checkbox" class="form-check-input" id="pacote_mensal" name="pacote_mensal">
+            </div>
+            <div class="mb-3" id="valor_pacote_field" style="display: none;">
+                <label for="valor_pacote" class="form-label">Valor do Pacote</label>
+                <input type="text" class="form-control" id="valor_pacote" name="valor_pacote">
+            </div>
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </form>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary mt-3">Voltar</a>
+    </div>
+
+    <script>
+        document.getElementById('pacote_mensal').addEventListener('change', function () {
+            var valorPacoteField = document.getElementById('valor_pacote_field');
+            valorPacoteField.style.display = this.checked ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>
