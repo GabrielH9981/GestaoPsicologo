@@ -162,18 +162,27 @@ def novo_relatorio():
         conteudo = request.form['conteudo']
         tipo = request.form['tipo']
 
+        # Buscar valor atual da sessão do paciente
+        cursor.execute('SELECT valor_sessao FROM pacientes WHERE id = %s', (paciente_id,))
+        resultado = cursor.fetchone()
+        valor_sessao_atual = resultado[0] if resultado else '0'
+
+        # Substitui vírgula por ponto e converte pra float
+        valor_sessao_atual = float(str(valor_sessao_atual).replace(',', '.'))
+
+        # Inserir relatório com valor da sessão registrado
         cursor.execute('''
-           INSERT INTO relatorios (paciente_id, titulo, data, conteudo, tipo)
-           VALUES (%s, %s, %s, %s, %s)
-           ''', (paciente_id, titulo, data, conteudo, tipo))
+           INSERT INTO relatorios (paciente_id, titulo, data, conteudo, tipo, valor_sessao)
+           VALUES (%s, %s, %s, %s, %s, %s)
+           ''', (paciente_id, titulo, data, conteudo, tipo, valor_sessao_atual))
 
         conn.commit()
         cursor.close()
         conn.close()
         return redirect(url_for('lista_pacientes'))
 
-    # Se GET, buscar todos os pacientes para preencher o select
-    cursor.execute('SELECT id, nome FROM pacientes')
+    # Se GET, buscar todos os pacientes ordenados por nome
+    cursor.execute('SELECT id, nome FROM pacientes ORDER BY nome ASC')
     pacientes = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -254,6 +263,8 @@ def excluir_relatorio(id):
     return redirect(url_for('perfil_paciente', id=paciente_id))
 
 
+from decimal import Decimal
+
 @app.route('/painel')
 def painel():
     conn = get_db_connection()
@@ -261,7 +272,7 @@ def painel():
 
     # Total de pacientes
     cursor.execute("SELECT COUNT(*) AS total FROM pacientes")
-    total_pacientes = cursor.fetchone()['total']
+    total_pacientes = cursor.fetchone().get('total', 0)
 
     # Mês e ano selecionados (ou padrão para o mês atual)
     hoje = datetime.today()
@@ -275,13 +286,13 @@ def painel():
     else:
         ultimo_dia = datetime(ano, mes + 1, 1).strftime('%Y-%m-%d')
 
-    # Relatórios no período (só os do tipo 'Relatório')
+    # Relatórios no período (apenas tipo 'Relatório')
     cursor.execute("""
-        SELECT r.paciente_id, COUNT(*) AS qtd_sessoes, p.nome, p.valor_sessao
+        SELECT r.paciente_id, COUNT(*) AS qtd_sessoes, p.nome, r.valor_sessao
         FROM relatorios r
         JOIN pacientes p ON r.paciente_id = p.id
         WHERE r.data >= %s AND r.data < %s AND r.tipo = 'Relatório'
-        GROUP BY r.paciente_id
+        GROUP BY r.paciente_id, r.valor_sessao, p.nome
     """, (primeiro_dia, ultimo_dia))
 
     resultados = cursor.fetchall()
@@ -291,20 +302,30 @@ def painel():
     detalhamento = []
 
     for row in resultados:
-        qtd = row['qtd_sessoes']
-        valor = float(row['valor_sessao'].replace(',', '.'))
+        qtd = row.get('qtd_sessoes', 0)
+        valor_sessao = row.get('valor_sessao', 0)
+
+        # Garantir que o valor seja um float mesmo que venha como string ou Decimal
+        if isinstance(valor_sessao, str):
+            valor = float(valor_sessao.replace(',', '.'))
+        elif isinstance(valor_sessao, Decimal):
+            valor = float(valor_sessao)
+        else:
+            valor = float(valor_sessao or 0)
+
         total = round(qtd * valor, 2)
 
         detalhamento.append({
-            'nome': row['nome'],
+            'nome': row.get('nome', ''),
             'qtd_sessoes': qtd,
-            'valor_sessao': row['valor_sessao'],
+            'valor_sessao': f"{valor:.2f}".replace('.', ','),
             'total_gerado': f"{total:.2f}".replace('.', ',')
         })
 
         total_sessoes += qtd
         total_financeiro += total
 
+    cursor.close()
     conn.close()
 
     return render_template('painel.html',
@@ -315,6 +336,7 @@ def painel():
                            mes=mes,
                            ano=ano,
                            ano_atual=hoje.year)
+
 
 
 

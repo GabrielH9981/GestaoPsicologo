@@ -75,3 +75,6 @@ Este projeto foi desenvolvido para auxiliar no gerenciamento de pacientes e rela
     ```
 
     A aplicação estará disponível em `http://127.0.0.1:5000/`.
+
+
+ALTER TABLE relatorios ADD COLUMN valor_sessao DECIMAL(10,2) NOT NULL DEFAULT 0;
