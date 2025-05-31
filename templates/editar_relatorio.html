@@ -21,6 +21,10 @@
             <label class="form-label">Conteúdo</label>
             <textarea class="form-control" name="conteudo" rows="6" required>{{ relatorio[2] }}</textarea>
         </div>
+        <div class="mb-3">
+            <label class="form-label">Tipo</label>
+            <input type="text" class="form-control" name="tipo" value="{{ relatorio[3] }}" readonly>
+        </div>
         <button type="submit" class="btn btn-success">Salvar Alterações</button>
         <a href="{{ url_for('visualizar_relatorio', id=id) }}" class="btn btn-secondary">Cancelar</a>
     </form>

@@ -75,6 +75,3 @@ Este projeto foi desenvolvido para auxiliar no gerenciamento de pacientes e rela
     ```
 
     A aplicação estará disponível em `http://127.0.0.1:5000/`.
-
-## Estrutura do Projeto
-

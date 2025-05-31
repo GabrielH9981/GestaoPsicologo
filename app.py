@@ -12,7 +12,7 @@ def get_db_connection():
         host='localhost',
         user='aline',  # Usuário que você criou
         password='1234',  # Senha do usuário
-        database='meu_banco'
+        database='sistema_pacientes'
     )
 
 @app.route('/')
@@ -160,11 +160,12 @@ def novo_relatorio():
         titulo = request.form['titulo']
         data = request.form['data']
         conteudo = request.form['conteudo']
+        tipo = request.form['tipo']
 
         cursor.execute('''
-            INSERT INTO relatorios (paciente_id, titulo, data, conteudo)
-            VALUES (%s, %s, %s, %s)
-        ''', (paciente_id, titulo, data, conteudo))
+           INSERT INTO relatorios (paciente_id, titulo, data, conteudo, tipo)
+           VALUES (%s, %s, %s, %s, %s)
+           ''', (paciente_id, titulo, data, conteudo, tipo))
 
         conn.commit()
         cursor.close()
@@ -205,18 +206,19 @@ def editar_relatorio(id):
         titulo = request.form['titulo']
         data = request.form['data']
         conteudo = request.form['conteudo']
+        tipo = request.form['tipo']
 
         cursor.execute('''
             UPDATE relatorios
-            SET titulo = %s, data = %s, conteudo = %s
+            SET titulo = %s, data = %s, conteudo = %s, tipo = %s
             WHERE id = %s
-        ''', (titulo, data, conteudo, id))
+        ''', (titulo, data, conteudo, tipo, id))
         conn.commit()
         cursor.close()
         conn.close()
         return redirect(url_for('visualizar_relatorio', id=id))
 
-    cursor.execute('SELECT titulo, data, conteudo FROM relatorios WHERE id = %s', (id,))
+    cursor.execute('SELECT titulo, data, conteudo, tipo FROM relatorios WHERE id = %s', (id,))
     relatorio = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -225,6 +227,7 @@ def editar_relatorio(id):
         return "Relatório não encontrado", 404
 
     return render_template('editar_relatorio.html', relatorio=relatorio, id=id)
+
 
 
 @app.route('/relatorio/<int:id>/excluir')
@@ -272,12 +275,12 @@ def painel():
     else:
         ultimo_dia = datetime(ano, mes + 1, 1).strftime('%Y-%m-%d')
 
-    # Relatórios no período
+    # Relatórios no período (só os do tipo 'Relatório')
     cursor.execute("""
         SELECT r.paciente_id, COUNT(*) AS qtd_sessoes, p.nome, p.valor_sessao
         FROM relatorios r
         JOIN pacientes p ON r.paciente_id = p.id
-        WHERE r.data >= %s AND r.data < %s
+        WHERE r.data >= %s AND r.data < %s AND r.tipo = 'Relatório'
         GROUP BY r.paciente_id
     """, (primeiro_dia, ultimo_dia))
 
@@ -312,6 +315,7 @@ def painel():
                            mes=mes,
                            ano=ano,
                            ano_atual=hoje.year)
+
 
 
 if __name__ == '__main__':
