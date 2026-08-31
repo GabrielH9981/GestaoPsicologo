@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Extratos Bancários</h4>
+    <a href="{{ url_for('novo_extrato') }}" class="btn btn-primary">+ Novo Extrato</a>
+</div>
+
+{% if extratos %}
+<table class="table table-bordered table-sm align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Mês/Ano</th>
+            <th>Arquivo</th>
+            <th class="text-center">Itens</th>
+            <th class="text-center">Pendentes</th>
+            <th class="text-end">Total Vinculado (R$)</th>
+            <th>Enviado em</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for e in extratos %}
+    <tr>
+        <td>{{ '%02d'|format(e.mes) }}/{{ e.ano }}</td>
+        <td>{{ e.nome_arquivo }}</td>
+        <td class="text-center">{{ e.total_itens }}</td>
+        <td class="text-center">
+            {% if e.pendentes > 0 %}
+                <span class="badge bg-warning text-dark">{{ e.pendentes }}</span>
+            {% else %}
+                <span class="badge bg-success">0</span>
+            {% endif %}
+        </td>
+        <td class="text-end">{{ '%.2f'|format(e.total_vinculado or 0)|replace('.', ',') }}</td>
+        <td>{{ e.criado_em.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>
+            <a href="{{ url_for('visualizar_extrato', id=e.id) }}" class="btn btn-sm btn-outline-success">Visualizar</a>
+            <a href="{{ url_for('editar_extrato', id=e.id) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+            <form method="post" action="{{ url_for('excluir_extrato', id=e.id) }}" class="d-inline"
+                  onsubmit="return confirm('Excluir extrato {{ '%02d'|format(e.mes) }}/{{ e.ano }}?')">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-muted">Nenhum extrato enviado ainda.</p>
+{% endif %}
+{% endblock %}

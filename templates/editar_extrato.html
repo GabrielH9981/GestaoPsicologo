@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block conteudo %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Extrato {{ '%02d'|format(extrato.mes) }}/{{ extrato.ano }}</h4>
+    <a href="{{ url_for('lista_extratos') }}" class="btn btn-outline-secondary btn-sm">← Voltar</a>
+</div>
+
+<form method="post" action="{{ url_for('salvar_extrato', id=extrato.id) }}">
+<table class="table table-bordered table-sm align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Nome no Extrato</th>
+            <th class="text-center">Sessões</th>
+            <th class="text-end">Total (R$)</th>
+            <th>Última Data</th>
+            <th>Paciente Vinculado</th>
+            <th class="text-center">Tipo</th>
+            <th class="text-center">Ignorar</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for item in itens %}
+    <tr class="
+        {% if item.ignorado %}table-secondary text-muted
+        {% elif item.paciente_id %}table-success
+        {% else %}table-warning{% endif %}">
+        <td>{{ item.nome_extrato }}</td>
+        <td class="text-center">{{ item.sessoes }}</td>
+        <td class="text-end">{{ item.total_fmt }}</td>
+        <td>{{ item.ultima_data or '—' }}</td>
+        <td>
+            <select name="paciente_{{ item.id }}" class="form-select form-select-sm select2-paciente" style="width:100%">
+                <option value="">— não vincular —</option>
+                {% for p in pacientes %}
+                <option value="{{ p.id }}" {{ 'selected' if p.id == item.paciente_id }}>{{ p.nome }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td class="text-center">
+            {% if item.match_tipo == 'dependente' %}
+                <span class="badge bg-info">dependente</span>
+            {% elif item.match_tipo == 'exato' %}
+                <span class="badge bg-success">exato</span>
+            {% elif item.match_tipo == 'fuzzy' %}
+                <span class="badge bg-warning text-dark">fuzzy</span>
+            {% else %}
+                <span class="badge bg-secondary">manual</span>
+            {% endif %}
+        </td>
+        <td class="text-center">
+            <input type="checkbox" name="ignorado_{{ item.id }}" class="form-check-input"
+                   {{ 'checked' if item.ignorado }} onchange="toggleRow(this)">
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="d-flex justify-content-end mt-2">
+    <button type="submit" class="btn btn-success px-4">Salvar tudo</button>
+</div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $('.select2-paciente').select2({ placeholder: '— não vincular —', allowClear: true, width: '100%' });
+
+    function toggleRow(cb) {
+        const row = cb.closest('tr');
+        if (cb.checked) {
+            row.classList.remove('table-success', 'table-warning');
+            row.classList.add('table-secondary', 'text-muted');
+        } else {
+            row.classList.remove('table-secondary', 'text-muted');
+            const sel = row.querySelector('select');
+            row.classList.add(sel && sel.value ? 'table-success' : 'table-warning');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Extratos{% endblock %}
+{% block page_title %}Extratos Bancários{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('extratos.novo') }}" class="btn btn-primary btn-sm">+ Novo Extrato</a>
+{% endblock %}
+{% block conteudo %}
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Mês/Ano</th>
+                <th>Arquivo</th>
+                <th class="text-center">Itens</th>
+                <th class="text-center">Pendentes</th>
+                <th class="text-end">Total Vinculado (R$)</th>
+                <th>Enviado em</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for e in extratos %}
+        <tr>
+            <td class="fw-bold">{{ '%02d'|format(e.mes) }}/{{ e.ano }}</td>
+            <td class="text-muted small">{{ e.nome_arquivo }}</td>
+            <td class="text-center">{{ e.total_itens }}</td>
+            <td class="text-center">
+                {% if e.finalizado %}
+                    <span class="badge badge-success">Finalizado</span>
+                {% elif e.pendentes > 0 %}
+                    <span class="badge badge-warning">{{ e.pendentes }} pendentes</span>
+                {% else %}
+                    <span class="badge badge-success">OK</span>
+                {% endif %}
+            </td>
+            <td class="text-end">{{ '%.2f'|format(e.total_vinculado or 0)|replace('.', ',') }}</td>
+            <td class="text-muted small">{{ e.criado_em.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td class="text-end">
+                <div class="d-flex gap-1 justify-content-end">
+                    <a href="{{ url_for('extratos.visualizar', id=e.id) }}" class="btn btn-outline-primary btn-sm">Visualizar</a>
+                    <a href="{{ url_for('extratos.editar', id=e.id) }}" class="btn btn-outline btn-sm">Editar</a>
+                    <form method="post" action="{{ url_for('extratos.finalizar', id=e.id) }}">
+                        <button type="submit" class="btn btn-sm {{ 'btn-outline' if e.finalizado else 'btn-success' }}">
+                            {{ 'Reabrir' if e.finalizado else 'Finalizar' }}
+                        </button>
+                    </form>
+                    <form method="post" action="{{ url_for('extratos.excluir', id=e.id) }}"
+                          onsubmit="return confirm('Excluir extrato {{ '%02d'|format(e.mes) }}/{{ e.ano }}?')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Excluir</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted" style="padding:32px">Nenhum extrato enviado ainda.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

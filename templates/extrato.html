@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block conteudo %}
+<h4>Extrato Bancário — Vinculação de Pacientes</h4>
+
+<form method="post" enctype="multipart/form-data" class="row g-2 align-items-end mb-4">
+    <div class="col-auto">
+        <input type="file" name="csv_file" accept=".csv" class="form-control" required>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Processar CSV</button>
+    </div>
+</form>
+
+{% if erro %}
+<div class="alert alert-danger">{{ erro }}</div>
+{% endif %}
+
+{% if resultados %}
+<p class="text-muted">{{ resultados|length }} entradas encontradas no extrato.</p>
+<table class="table table-bordered table-sm align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Nome no Extrato</th>
+            <th>Sessões</th>
+            <th>Total (R$)</th>
+            <th>Última Data</th>
+            <th>Paciente Vinculado</th>
+            <th>Tipo</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for r in resultados %}
+    <tr class="{{ 'table-success' if r.paciente_id else 'table-warning' }}">
+        <td>{{ r.nome_extrato }}</td>
+        <td class="text-center">{{ r.sessoes }}</td>
+        <td class="text-end">{{ r.total_fmt }}</td>
+        <td>{{ r.ultima_data }}</td>
+        <td>
+            {% if r.paciente_nome %}
+                {{ r.paciente_nome }}
+            {% else %}
+                <span class="text-muted">—</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if r.match_tipo == 'dependente' %}
+                <span class="badge bg-info">dependente</span>
+            {% elif r.match_tipo == 'exato' %}
+                <span class="badge bg-success">exato</span>
+            {% elif r.match_tipo == 'fuzzy' %}
+                <span class="badge bg-warning text-dark">fuzzy</span>
+            {% else %}
+                <span class="badge bg-secondary">não vinculado</span>
+            {% endif %}
+        </td>
+        <td>
+            <form method="post" action="{{ url_for('vincular_dependente') }}" class="d-flex gap-1">
+                <input type="hidden" name="nome_extrato" value="{{ r.nome_extrato }}">
+                <select name="paciente_id" class="form-select form-select-sm" style="min-width:180px" required>
+                    <option value="">Selecionar...</option>
+                    {% for p in pacientes %}
+                    <option value="{{ p.id }}" {{ 'selected' if p.id == r.paciente_id }}>{{ p.nome }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-primary">Salvar</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

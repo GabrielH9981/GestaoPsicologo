@@ -39,6 +39,7 @@
 
     <div class="mt-4">
         <a href="{{ url_for('editar_paciente', id=paciente[0]) }}" class="btn btn-primary me-2">Editar Informações</a>
+        <a href="{{ url_for('dados_nota', id=paciente[0]) }}" class="btn btn-outline-info me-2">Dados para Nota</a>
         <a href="{{ url_for('excluir_paciente', id=paciente[0]) }}" class="btn btn-danger"
            onclick="return confirm('Tem certeza que deseja excluir este paciente? Esta ação não poderá ser desfeita.');">Excluir Paciente</a>
         <a href="{{ url_for('lista_pacientes') }}" class="btn btn-secondary">Voltar à Lista</a>

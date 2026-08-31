@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}Painel Financeiro{% endblock %}
+{% block page_title %}Painel Financeiro{% endblock %}
+{% block conteudo %}
+<form method="get" class="d-flex gap-2 align-items-end mb-4">
+    <div>
+        <label class="form-label">Mês</label>
+        <select class="form-select" name="mes" style="width:90px">
+            {% for i in range(1, 13) %}
+            <option value="{{ i }}" {{ 'selected' if i == mes }}>{{ '%02d'|format(i) }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="form-label">Ano</label>
+        <select class="form-select" name="ano" style="width:100px">
+            {% for a in range(2024, ano_atual + 2) %}
+            <option value="{{ a }}" {{ 'selected' if a == ano }}>{{ a }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+</form>
+
+<div class="row mb-4">
+    <div class="col-3"><div class="stat-card blue"><div class="stat-label">Total de Pacientes</div><div class="stat-value">{{ total_pacientes }}</div></div></div>
+    <div class="col-3"><div class="stat-card green"><div class="stat-label">Sessões no Mês</div><div class="stat-value">{{ total_sessoes }}</div></div></div>
+    <div class="col-3"><div class="stat-card dark"><div class="stat-label">Total Recebido</div><div class="stat-value" style="font-size:22px">R$ {{ total_financeiro }}</div></div></div>
+    <div class="col-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,{{ '#059669, #10b981' if liquido_val >= 0 else '#dc2626, #ef4444' }})">
+            <div class="stat-label">Líquido (Recebido - Gastos)</div>
+            <div class="stat-value" style="font-size:22px">R$ {{ liquido }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-7">
+        <div class="card">
+            <div class="card-header">Receitas por Paciente</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th class="text-center">Sessões</th>
+                        <th class="text-end">Recebido (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in detalhamento %}
+                <tr>
+                    <td>{{ item.nome }}</td>
+                    <td class="text-center">{{ item.qtd_sessoes or '—' }}</td>
+                    <td class="text-end">{{ item.recebido if item.recebido != '0,00' else '—' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-center text-muted" style="padding:32px">Nenhum dado para {{ '%02d'|format(mes) }}/{{ ano }}.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-5">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span>Gastos do Mês</span>
+                <span class="fw-bold text-danger" style="font-size:13px">- R$ {{ total_gastos }}</span>
+            </div>
+            <table class="table">
+                <tbody>
+                {% for g in gastos_mes %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ g.nome }}</div>
+                        <div class="small text-muted">{{ g.categoria }}</div>
+                    </td>
+                    <td class="text-end" style="white-space:nowrap">
+                        R$ {{ '%.2f'|format(g.valor)|replace('.', ',') }}
+                    </td>
+                    <td style="width:40px">
+                        <form method="post" action="{{ url_for('gastos.remover_mes', id=g.id) }}">
+                            <input type="hidden" name="mes" value="{{ mes }}">
+                            <input type="hidden" name="ano" value="{{ ano }}">
+                            <button type="submit" class="btn btn-ghost btn-sm text-danger"
+                                    onclick="return confirm('Remover {{ g.nome }} deste mês?')">✕</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-center text-muted" style="padding:20px">Nenhum gasto vinculado.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="card-footer">
+                <button class="btn btn-outline btn-sm w-100" onclick="document.getElementById('form-gasto').classList.toggle('d-none')">
+                    + Adicionar Gasto
+                </button>
+                <div id="form-gasto" class="d-none mt-3">
+                    <form method="post" action="{{ url_for('gastos.vincular') }}">
+                        <input type="hidden" name="mes" value="{{ mes }}">
+                        <input type="hidden" name="ano" value="{{ ano }}">
+
+                        <div class="mb-2">
+                            <label class="form-label">Gasto</label>
+                            <select name="gasto_id" class="form-select" id="sel-gasto" onchange="preencherValor(this)">
+                                <option value="">— Cadastrar novo —</option>
+                                {% for g in gastos_disponiveis %}
+                                <option value="{{ g.id }}" data-valor="{{ g.valor_padrao or '' }}" data-fixo="{{ g.fixo }}">
+                                    {{ g.nome }} ({{ g.categoria }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div id="campos-novo">
+                            <div class="mb-2">
+                                <label class="form-label">Nome</label>
+                                <input type="text" name="nome_novo" id="inp-nome" class="form-control" placeholder="Ex: Imposto DAS">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Categoria</label>
+                                <input type="text" name="categoria_nova" class="form-control" list="cats2" placeholder="Ex: Impostos">
+                                <datalist id="cats2">{% for c in categorias %}<option value="{{ c }}">{% endfor %}</datalist>
+                            </div>
+                            <div class="mb-2">
+                                <label class="d-flex align-items-center gap-2" style="cursor:pointer">
+                                    <input type="checkbox" name="fixo_novo" class="form-check-input">
+                                    <span class="form-label mb-0">Fixo</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Valor (R$)</label>
+                            <input type="number" name="valor" id="inp-valor" class="form-control"
+                                   step="0.01" min="0" placeholder="0,00" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Vincular ao Mês</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function preencherValor(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    const campos = document.getElementById('campos-novo');
+    const inpValor = document.getElementById('inp-valor');
+    const inpNome = document.getElementById('inp-nome');
+    if (opt.value === '') {
+        campos.style.display = '';
+        inpNome.required = true;
+        inpValor.value = '';
+    } else {
+        campos.style.display = 'none';
+        inpNome.required = false;
+        inpValor.value = (opt.dataset.fixo === '1' && opt.dataset.valor) ? opt.dataset.valor : '';
+    }
+}
+// estado inicial: se tiver opcoes no select, começa escondido esperando escolha
+document.addEventListener('DOMContentLoaded', function() {
+    const sel = document.getElementById('sel-gasto');
+    if (sel) preencherValor(sel);
+});
+</script>
+{% endblock %}

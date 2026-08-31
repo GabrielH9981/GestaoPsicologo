@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Dependentes — {{ paciente.nome }}{% endblock %}
+{% block page_title %}Dependentes de {{ paciente.nome }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('pacientes.perfil', id=paciente.id) }}" class="btn btn-outline btn-sm">← Voltar ao Perfil</a>
+{% endblock %}
+{% block conteudo %}
+<div class="row justify-content-center">
+    <div class="col-7">
+        <div class="card mb-3">
+            <div class="card-header">Adicionar Dependente</div>
+            <div class="card-body">
+                <form method="post" class="d-flex gap-2">
+                    <input type="text" name="nome_extrato" class="form-control"
+                           placeholder="Nome exatamente como aparece no extrato" required>
+                    <button type="submit" class="btn btn-primary" style="white-space:nowrap">Adicionar</button>
+                </form>
+                <p class="small text-muted mt-2 mb-0">
+                    Este nome será usado para reconhecer automaticamente pagamentos no extrato bancário.
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Dependentes Vinculados</div>
+            <table class="table">
+                <thead>
+                    <tr><th>Nome no Extrato</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for d in dependentes %}
+                <tr>
+                    <td>{{ d.nome_extrato }}</td>
+                    <td class="text-end">
+                        <form method="post" action="{{ url_for('pacientes.excluir_dependente', id=d.id) }}"
+                              onsubmit="return confirm('Remover {{ d.nome_extrato }}?')">
+                            <button type="submit" class="btn btn-ghost btn-sm text-danger">Remover</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" class="text-center text-muted" style="padding:24px">
+                        Nenhum dependente vinculado ainda.
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

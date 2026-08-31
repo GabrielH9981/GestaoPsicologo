@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Editar Relatório{% endblock %}
+{% block page_title %}Editar Relatório{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('relatorios.visualizar', id=relatorio.id) }}" class="btn btn-ghost btn-sm">← Voltar</a>
+{% endblock %}
+{% block conteudo %}
+<div class="card" style="max-width:760px">
+    <div class="card-body">
+        <form method="post">
+            <div class="row">
+                <div class="col-8">
+                    <label class="form-label">Título *</label>
+                    <input type="text" class="form-control" name="titulo" value="{{ relatorio.titulo }}" required>
+                </div>
+                <div class="col-4">
+                    <label class="form-label">Data *</label>
+                    <input type="date" class="form-control" name="data" value="{{ relatorio.data }}" required>
+                </div>
+                <div class="col-4 mt-2">
+                    <label class="form-label">Tipo</label>
+                    <select class="form-select" name="tipo">
+                        <option value="Relatório" {{ 'selected' if relatorio.tipo == 'Relatório' }}>Relatório</option>
+                        <option value="Teste" {{ 'selected' if relatorio.tipo == 'Teste' }}>Teste</option>
+                        <option value="Outros" {{ 'selected' if relatorio.tipo == 'Outros' }}>Outros</option>
+                    </select>
+                </div>
+                <div class="col-12 mt-2">
+                    <label class="form-label">Conteúdo *</label>
+                    <textarea class="form-control" name="conteudo" rows="8" required>{{ relatorio.conteudo }}</textarea>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <a href="{{ url_for('relatorios.visualizar', id=relatorio.id) }}" class="btn btn-outline">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

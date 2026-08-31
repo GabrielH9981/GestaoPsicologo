@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Notas Fiscais — {{ '%02d'|format(extrato.mes) }}/{{ extrato.ano }}</h4>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('visualizar_extrato', id=extrato.id) }}?fmt=json" class="btn btn-outline-secondary btn-sm">Exportar JSON</a>
+        <a href="{{ url_for('editar_extrato', id=extrato.id) }}" class="btn btn-outline-primary btn-sm">Editar</a>
+        <a href="{{ url_for('lista_extratos') }}" class="btn btn-outline-secondary btn-sm">← Voltar</a>
+    </div>
+</div>
+
+{% set sem_cpf = itens | selectattr('cpf', 'none') | list %}
+{% if sem_cpf %}
+<div class="alert alert-warning py-2">
+    {{ sem_cpf | length }} item(ns) sem CPF — preencha abaixo antes de emitir as notas.
+</div>
+{% endif %}
+
+<div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+{% for item in itens %}
+<div class="col">
+    <div class="card h-100 {{ 'border-warning' if not item.cpf else 'border-success' }}">
+        <div class="card-header d-flex justify-content-between align-items-start gap-2">
+            <div>
+                <div class="fw-bold">{{ item.nome_completo }}</div>
+                {% if item.nome_completo != item.nome_extrato %}
+                <small class="text-muted">Extrato: {{ item.nome_extrato }}</small>
+                {% endif %}
+            </div>
+            <span class="badge bg-primary text-nowrap fs-6">R$ {{ item.total_fmt }}</span>
+        </div>
+        <div class="card-body">
+            {% if not item.cpf %}
+            {# ── inline: cadastrar CPF/endereço sem sair da tela ── #}
+            <form method="post"
+                  action="{{ url_for('dados_nota', id=item.pac_id, next=request.url) if item.pac_id else '#' }}"
+                  class="mb-2 p-2 bg-light rounded border">
+                <div class="small text-warning fw-bold mb-2">Dados incompletos — preencha para emitir a nota</div>
+                <div class="row g-1">
+                    <div class="col-6">
+                        <input class="form-control form-control-sm" name="cpf" placeholder="CPF" required>
+                    </div>
+                    <div class="col-6">
+                        <input class="form-control form-control-sm" name="cep" placeholder="CEP">
+                    </div>
+                    <div class="col-8">
+                        <input class="form-control form-control-sm" name="logradouro" placeholder="Logradouro">
+                    </div>
+                    <div class="col-4">
+                        <input class="form-control form-control-sm" name="numero" placeholder="Número">
+                    </div>
+                    <div class="col-6">
+                        <input class="form-control form-control-sm" name="bairro" placeholder="Bairro">
+                    </div>
+                    <div class="col-6">
+                        <input class="form-control form-control-sm" name="cidade" placeholder="Cidade">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-warning btn-sm mt-2">Salvar dados</button>
+            </form>
+            {% else %}
+            <div class="row g-1 small">
+                <div class="col-6">
+                    <span class="text-muted">CPF</span><br>
+                    <strong>{{ item.cpf }}</strong>
+                </div>
+                <div class="col-3">
+                    <span class="text-muted">Sessões</span><br>
+                    <strong>{{ item.sessoes }}</strong>
+                </div>
+                <div class="col-3">
+                    <span class="text-muted">Data</span><br>
+                    <strong>{{ item.ultima_data or '—' }}</strong>
+                </div>
+                <div class="col-8 mt-1">
+                    <span class="text-muted">Logradouro</span><br>
+                    {{ item.logradouro or '—' }}{% if item.numero %}, {{ item.numero }}{% endif %}
+                </div>
+                <div class="col-4 mt-1">
+                    <span class="text-muted">CEP</span><br>
+                    {{ item.cep or '—' }}
+                </div>
+                <div class="col-6 mt-1">
+                    <span class="text-muted">Bairro</span><br>
+                    {{ item.bairro or '—' }}
+                </div>
+                <div class="col-6 mt-1">
+                    <span class="text-muted">Cidade</span><br>
+                    {{ item.cidade or '—' }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer text-muted small d-flex justify-content-between">
+            <span>Sessões de Psicoterapia · UN</span>
+            {% if item.pac_id %}
+            <a href="{{ url_for('editar_paciente', id=item.pac_id) }}" class="text-muted">editar dados</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

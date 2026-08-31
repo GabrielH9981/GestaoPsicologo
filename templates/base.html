@@ -2,25 +2,72 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema de Pacientes</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestão Psicológica{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">Início</a>
-        <div>
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/cadastro">Cadastrar Paciente</a></li>
-                <li class="nav-item"><a class="nav-link" href="/pacientes">Lista de Pacientes</a></li>
-                <li><a class="nav-link" href="{{ url_for('novo_relatorio') }}">Novo Relatório</a></li>
-                <li><a href="/painel" class="nav-link">Painel Financeiro</a></li>
-            </ul>
-        </div>
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <a href="{{ url_for('home') }}" style="text-decoration:none">
+            <span>Gestão Psi</span>
+            <small>Sistema de Pacientes</small>
+        </a>
     </div>
-</nav>
-<div class="container mt-4">
-    {% block conteudo %}{% endblock %}
+
+    <nav>
+        <div class="sidebar-section">Pacientes</div>
+        <a href="{{ url_for('pacientes.lista') }}"
+           class="{{ 'active' if request.endpoint in ('pacientes.lista', 'pacientes.perfil') }}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Lista de Pacientes
+        </a>
+        <a href="{{ url_for('pacientes.cadastro') }}"
+           class="{{ 'active' if request.endpoint == 'pacientes.cadastro' }}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Novo Paciente
+        </a>
+
+        <div class="sidebar-section">Clínica</div>
+        <a href="{{ url_for('relatorios.novo') }}"
+           class="{{ 'active' if request.endpoint and request.endpoint.startswith('relatorios') }}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Novo Relatório
+        </a>
+        <a href="{{ url_for('painel.index') }}"
+           class="{{ 'active' if request.endpoint == 'painel.index' }}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Painel Financeiro
+        </a>
+
+        <div class="sidebar-section">Financeiro</div>
+        <a href="{{ url_for('extratos.lista') }}"
+           class="{{ 'active' if request.endpoint and request.endpoint.startswith('extratos') }}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Extratos
+        </a>
+        <a href="{{ url_for('gastos.lista') }}"
+           class="{{ 'active' if request.endpoint and request.endpoint.startswith('gastos') }}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Controle de Gastos
+        </a>
+    </nav>
+</aside>
+
+<div class="main">
+    <div class="topbar">
+        <span class="topbar-title">{% block page_title %}{% endblock %}</span>
+        <div class="d-flex gap-2">{% block topbar_actions %}{% endblock %}</div>
+    </div>
+    <div class="content">
+        {% block conteudo %}{% endblock %}
+    </div>
 </div>
+
+{% block scripts %}{% endblock %}
 </body>
 </html>

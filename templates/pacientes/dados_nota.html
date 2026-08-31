@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Dados para Nota — {{ paciente.nome }}{% endblock %}
+{% block page_title %}Dados para Nota — {{ paciente.nome }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('pacientes.perfil', id=paciente.id) }}" class="btn btn-ghost btn-sm">← Voltar</a>
+{% endblock %}
+{% block conteudo %}
+<div class="card mb-4" style="max-width:860px">
+    <div class="card-header">Paciente</div>
+    <div class="card-body">
+        <form method="post">
+            <div class="row">
+                <div class="col-4">
+                    <label class="form-label">Nome</label>
+                    <input class="form-control" value="{{ paciente.nome }}" disabled>
+                </div>
+                <div class="col-3">
+                    <label class="form-label">CPF</label>
+                    <input class="form-control" name="cpf" value="{{ nota.cpf if nota else '' }}">
+                </div>
+                <div class="col-2">
+                    <label class="form-label">CEP</label>
+                    <input class="form-control" name="cep" value="{{ nota.cep if nota else '' }}">
+                </div>
+                <div class="col-5 mt-2">
+                    <label class="form-label">Logradouro</label>
+                    <input class="form-control" name="logradouro" value="{{ nota.logradouro if nota else '' }}">
+                </div>
+                <div class="col-2 mt-2">
+                    <label class="form-label">Número</label>
+                    <input class="form-control" name="numero" value="{{ nota.numero if nota else '' }}">
+                </div>
+                <div class="col-3 mt-2">
+                    <label class="form-label">Bairro</label>
+                    <input class="form-control" name="bairro" value="{{ nota.bairro if nota else '' }}">
+                </div>
+                <div class="col-3 mt-2">
+                    <label class="form-label">Cidade</label>
+                    <input class="form-control" name="cidade" value="{{ nota.cidade if nota else '' }}">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Salvar</button>
+        </form>
+    </div>
+</div>
+
+{% if dependentes %}
+<h6 class="text-muted mb-3">Pagadores / Dependentes vinculados</h6>
+{% for dep in dependentes %}
+<div class="card mb-3" style="max-width:860px">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span class="fw-bold">{{ dep.nome_extrato }}</span>
+        {% if not dep.cpf %}<span class="badge badge-warning">sem dados</span>{% endif %}
+    </div>
+    <div class="card-body">
+        <form method="post" action="{{ url_for('pacientes.dados_nota_dependente', id=dep.id) }}">
+            <div class="row">
+                <div class="col-3">
+                    <label class="form-label">CPF</label>
+                    <input class="form-control" name="cpf" value="{{ dep.cpf or '' }}">
+                </div>
+                <div class="col-2">
+                    <label class="form-label">CEP</label>
+                    <input class="form-control" name="cep" value="{{ dep.cep or '' }}">
+                </div>
+                <div class="col-5">
+                    <label class="form-label">Logradouro</label>
+                    <input class="form-control" name="logradouro" value="{{ dep.logradouro or '' }}">
+                </div>
+                <div class="col-2">
+                    <label class="form-label">Número</label>
+                    <input class="form-control" name="numero" value="{{ dep.numero or '' }}">
+                </div>
+                <div class="col-3 mt-2">
+                    <label class="form-label">Bairro</label>
+                    <input class="form-control" name="bairro" value="{{ dep.bairro or '' }}">
+                </div>
+                <div class="col-3 mt-2">
+                    <label class="form-label">Cidade</label>
+                    <input class="form-control" name="cidade" value="{{ dep.cidade or '' }}">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm mt-3">Salvar</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

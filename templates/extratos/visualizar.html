@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Notas {{ '%02d'|format(extrato.mes) }}/{{ extrato.ano }}{% endblock %}
+{% block page_title %}Notas Fiscais — {{ '%02d'|format(extrato.mes) }}/{{ extrato.ano }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('extratos.visualizar', id=extrato.id) }}?fmt=json" class="btn btn-outline btn-sm">Exportar JSON</a>
+<a href="{{ url_for('extratos.editar', id=extrato.id) }}" class="btn btn-outline btn-sm">Editar</a>
+<a href="{{ url_for('extratos.lista') }}" class="btn btn-ghost btn-sm">← Voltar</a>
+{% endblock %}
+{% block conteudo %}
+{% set sem_cpf = itens | selectattr('cpf', 'none') | list %}
+{% if sem_cpf %}
+<div class="alert alert-warning">{{ sem_cpf|length }} item(ns) sem CPF — preencha antes de emitir as notas.</div>
+{% endif %}
+
+<div class="row">
+{% for item in itens %}
+<div class="col-6" style="margin-bottom:16px">
+    <div class="card h-100" style="border-left: 3px solid {{ '#059669' if item.cpf else '#d97706' }}">
+        <div class="card-header d-flex justify-content-between align-items-start">
+            <div>
+                <div class="fw-bold">{{ item.nome_completo }}</div>
+                {% if item.nome_completo != item.nome_extrato %}
+                <div class="small text-muted">Extrato: {{ item.nome_extrato }}</div>
+                {% endif %}
+            </div>
+            <span class="badge badge-primary" style="font-size:13px;padding:5px 10px">R$ {{ item.total_fmt }}</span>
+        </div>
+        <div class="card-body">
+            {% if not item.cpf %}
+            <form method="post"
+                  action="{{ url_for('pacientes.dados_nota', id=item.pac_id, next=request.url) if item.pac_id else '#' }}"
+                  style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px">
+                <p class="small fw-bold" style="color:#92400e;margin-bottom:8px">Dados incompletos — preencha para emitir a nota</p>
+                <div class="row">
+                    <div class="col-6"><input class="form-control" style="font-size:12px;padding:5px 8px" name="cpf" placeholder="CPF" required></div>
+                    <div class="col-6"><input class="form-control" style="font-size:12px;padding:5px 8px" name="cep" placeholder="CEP"></div>
+                    <div class="col-8 mt-1"><input class="form-control" style="font-size:12px;padding:5px 8px" name="logradouro" placeholder="Logradouro"></div>
+                    <div class="col-4 mt-1"><input class="form-control" style="font-size:12px;padding:5px 8px" name="numero" placeholder="Nº"></div>
+                    <div class="col-6 mt-1"><input class="form-control" style="font-size:12px;padding:5px 8px" name="bairro" placeholder="Bairro"></div>
+                    <div class="col-6 mt-1"><input class="form-control" style="font-size:12px;padding:5px 8px" name="cidade" placeholder="Cidade"></div>
+                </div>
+                <button type="submit" class="btn btn-warning btn-sm mt-2">Salvar</button>
+            </form>
+            {% else %}
+            <div class="row" style="font-size:13px">
+                <div class="col-6 mb-2"><span class="text-muted">CPF</span><br><strong>{{ item.cpf }}</strong></div>
+                <div class="col-3 mb-2"><span class="text-muted">Sessões</span><br><strong>{{ item.sessoes }}</strong></div>
+                <div class="col-3 mb-2"><span class="text-muted">Data</span><br><strong>{{ item.ultima_data or '—' }}</strong></div>
+                <div class="col-8"><span class="text-muted">Endereço</span><br>{{ item.logradouro or '—' }}{% if item.numero %}, {{ item.numero }}{% endif %}</div>
+                <div class="col-4"><span class="text-muted">CEP</span><br>{{ item.cep or '—' }}</div>
+                <div class="col-6 mt-1"><span class="text-muted">Bairro</span><br>{{ item.bairro or '—' }}</div>
+                <div class="col-6 mt-1"><span class="text-muted">Cidade</span><br>{{ item.cidade or '—' }}</div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <span>Sessões de Psicoterapia · UN</span>
+            {% if item.pac_id %}<a href="{{ url_for('pacientes.editar', id=item.pac_id) }}" class="text-muted small">editar dados</a>{% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

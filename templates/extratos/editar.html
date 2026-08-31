@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Extrato {{ '%02d'|format(extrato.mes) }}/{{ extrato.ano }}{% endblock %}
+{% block page_title %}Extrato {{ '%02d'|format(extrato.mes) }}/{{ extrato.ano }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('extratos.visualizar', id=extrato.id) }}" class="btn btn-outline-primary btn-sm">Visualizar</a>
+<form method="post" action="{{ url_for('extratos.finalizar', id=extrato.id) }}">
+    <button type="submit" class="btn btn-sm {{ 'btn-outline' if extrato.finalizado else 'btn-success' }}">
+        {{ 'Reabrir' if extrato.finalizado else 'Finalizar' }}
+    </button>
+</form>
+<a href="{{ url_for('extratos.lista') }}" class="btn btn-ghost btn-sm">← Voltar</a>
+{% endblock %}
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+{% endblock %}
+{% block conteudo %}
+<form method="post" action="{{ url_for('extratos.salvar', id=extrato.id) }}">
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome no Extrato</th>
+                <th class="text-center">Sessões</th>
+                <th class="text-end">Total (R$)</th>
+                <th>Última Data</th>
+                <th style="min-width:220px">Paciente</th>
+                <th class="text-center">Tipo</th>
+                <th class="text-center">Ignorar</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in itens %}
+        <tr id="row-{{ item.id }}" class="{{ 'row-ignored' if item.ignorado else ('row-ok' if item.paciente_id else 'row-pending') }}">
+            <td>{{ item.nome_extrato }}</td>
+            <td class="text-center">{{ item.sessoes }}</td>
+            <td class="text-end">{{ item.total_fmt }}</td>
+            <td class="text-muted">{{ item.ultima_data or '—' }}</td>
+            <td>
+                <select name="paciente_{{ item.id }}" class="form-select select2-pac" style="width:100%">
+                    <option value="">— não vincular —</option>
+                    {% for p in pacientes %}
+                    <option value="{{ p.id }}" {{ 'selected' if p.id == item.paciente_id }}>{{ p.nome }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="text-center">
+                {% if item.match_tipo == 'dependente' %}<span class="badge badge-info">dep</span>
+                {% elif item.match_tipo == 'exato' %}<span class="badge badge-success">exato</span>
+                {% elif item.match_tipo == 'fuzzy' %}<span class="badge badge-warning">fuzzy</span>
+                {% else %}<span class="badge badge-muted">manual</span>{% endif %}
+            </td>
+            <td class="text-center">
+                <input type="checkbox" name="ignorado_{{ item.id }}" class="form-check-input"
+                       {{ 'checked' if item.ignorado }} onchange="toggleRow(this, {{ item.id }})">
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="d-flex justify-content-end mt-3">
+    <button type="submit" class="btn btn-primary">Salvar tudo</button>
+</div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$('.select2-pac').select2({ placeholder: '— não vincular —', allowClear: true, width: '100%' });
+function toggleRow(cb, id) {
+    const row = document.getElementById('row-' + id);
+    row.className = cb.checked ? 'row-ignored' : (row.querySelector('select').value ? 'row-ok' : 'row-pending');
+}
+</script>
+<style>
+.row-ok td { background: #f0fdf4; }
+.row-pending td { background: #fffbeb; }
+.row-ignored td { background: #f8fafc; color: #94a3b8; }
+</style>
+{% endblock %}

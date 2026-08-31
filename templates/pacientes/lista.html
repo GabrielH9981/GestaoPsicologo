@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Pacientes{% endblock %}
+{% block page_title %}Pacientes{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('pacientes.cadastro') }}" class="btn btn-primary btn-sm">+ Novo Paciente</a>
+{% endblock %}
+{% block conteudo %}
+<div class="card">
+    <div class="card-body" style="padding-bottom:0">
+        <form method="get" class="d-flex gap-2 mb-3">
+            <input class="form-control" style="max-width:280px" type="search" name="busca"
+                   placeholder="Buscar por nome..." value="{{ busca }}">
+            <button class="btn btn-outline" type="submit">Buscar</button>
+            {% if busca %}<a href="{{ url_for('pacientes.lista') }}" class="btn btn-ghost">Limpar</a>{% endif %}
+        </form>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Nascimento</th>
+                <th>Telefone</th>
+                <th>Valor Sessão</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in pacientes %}
+        <tr>
+            <td class="fw-bold">{{ p.nome }}</td>
+            <td class="text-muted">{{ p.data_nascimento }}</td>
+            <td>{{ p.telefone }}</td>
+            <td>R$ {{ p.valor_sessao }}</td>
+            <td class="text-end">
+                <a href="{{ url_for('pacientes.perfil', id=p.id) }}" class="btn btn-outline btn-sm">Ver perfil</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted" style="padding:32px">Nenhum paciente encontrado.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 MYSQL_CONFIG = {
     'host': 'localhost',
-    'user': 'aline',
-    'password': '1234',
+    'user': 'root',
+    'password': 'root',
     'database': 'sistema_pacientes'
 }

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}{{ relatorio.titulo }}{% endblock %}
+{% block page_title %}{{ relatorio.titulo }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('relatorios.editar', id=relatorio.id) }}" class="btn btn-outline btn-sm">Editar</a>
+<form method="post" action="{{ url_for('relatorios.excluir', id=relatorio.id) }}" class="d-flex"
+      onsubmit="return confirm('Excluir este relatório?')">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Excluir</button>
+</form>
+{% endblock %}
+{% block conteudo %}
+<div class="card" style="max-width:760px">
+    <div class="card-header d-flex justify-content-between">
+        <span>{{ relatorio.data }}</span>
+        <span class="badge badge-muted">{{ relatorio.tipo }}</span>
+    </div>
+    <div class="card-body" style="white-space:pre-wrap;line-height:1.7">{{ relatorio.conteudo }}</div>
+</div>
+{% endblock %}

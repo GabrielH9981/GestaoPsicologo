@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Controle de Gastos{% endblock %}
+{% block page_title %}Controle de Gastos{% endblock %}
+{% block topbar_actions %}
+<button class="btn btn-primary btn-sm" onclick="document.getElementById('form-novo').classList.toggle('d-none')">+ Novo Gasto</button>
+{% endblock %}
+{% block conteudo %}
+
+<div id="form-novo" class="card mb-4 d-none">
+    <div class="card-header">Novo Gasto</div>
+    <div class="card-body">
+        <form method="post" action="{{ url_for('gastos.novo') }}">
+            <div class="row">
+                <div class="col-4">
+                    <label class="form-label">Nome</label>
+                    <input type="text" name="nome" class="form-control" placeholder="Ex: Imposto DAS" required>
+                </div>
+                <div class="col-3">
+                    <label class="form-label">Categoria</label>
+                    <input type="text" name="categoria" class="form-control" list="cats" placeholder="Ex: Impostos">
+                    <datalist id="cats">
+                        {% for c in categorias %}<option value="{{ c }}">{% endfor %}
+                    </datalist>
+                </div>
+                <div class="col-2">
+                    <label class="form-label">Valor Padrão (R$)</label>
+                    <input type="number" name="valor_padrao" class="form-control" step="0.01" min="0" placeholder="Opcional">
+                </div>
+                <div class="col-2 d-flex align-items-end gap-2" style="padding-bottom:2px">
+                    <label class="d-flex align-items-center gap-2" style="cursor:pointer;margin-bottom:8px">
+                        <input type="checkbox" name="fixo" class="form-check-input">
+                        <span>Fixo</span>
+                    </label>
+                </div>
+                <div class="col-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Salvar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Valor Padrão</th>
+                <th>Tipo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for g in gastos %}
+        <tr>
+            <td class="fw-bold">{{ g.nome }}</td>
+            <td><span class="badge badge-muted">{{ g.categoria }}</span></td>
+            <td>{{ 'R$ ' + '%.2f'|format(g.valor_padrao)|replace('.', ',') if g.valor_padrao else '—' }}</td>
+            <td>
+                {% if g.fixo %}
+                <span class="badge badge-info">Fixo</span>
+                {% else %}
+                <span class="badge badge-muted">Variável</span>
+                {% endif %}
+            </td>
+            <td class="text-end">
+                <a href="{{ url_for('gastos.editar', id=g.id) }}" class="btn btn-ghost btn-sm">Editar</a>
+                <form method="post" action="{{ url_for('gastos.excluir', id=g.id) }}" class="d-flex"
+                      onsubmit="return confirm('Excluir {{ g.nome }}?')">
+                    <button type="submit" class="btn btn-ghost btn-sm text-danger">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted" style="padding:32px">Nenhum gasto cadastrado.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

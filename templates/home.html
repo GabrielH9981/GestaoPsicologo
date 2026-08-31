@@ -1,5 +1,93 @@
 {% extends 'base.html' %}
+{% block title %}Início{% endblock %}
+{% block page_title %}Início{% endblock %}
 {% block conteudo %}
-<h2>Bem-vindo ao Sistema de Relatórios de Pacientes</h2>
-<p>Use o menu acima para navegar pelo sistema.</p>
+
+{% if extratos_pendentes %}
+<div class="alert alert-warning d-flex align-items-center justify-content-between mb-4">
+    <span>
+        <strong>Atenção:</strong>
+        {{ extratos_pendentes|length }} extrato{{ 's' if extratos_pendentes|length > 1 }} com itens sem paciente vinculado.
+    </span>
+    <div class="d-flex gap-2">
+        {% for e in extratos_pendentes %}
+        <a href="{{ url_for('extratos.editar', id=e.id) }}" class="btn btn-warning btn-sm">
+            {{ '%02d'|format(e.mes) }}/{{ e.ano }}
+            <span class="badge" style="background:rgba(0,0,0,.15);color:#fff">{{ e.pendentes }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col-3">
+        <div class="stat-card blue">
+            <div class="stat-label">Total de Pacientes</div>
+            <div class="stat-value">{{ total_pacientes }}</div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="stat-card green">
+            <div class="stat-label">Sessões em {{ mes_nome }}</div>
+            <div class="stat-value">{{ total_sessoes }}</div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="stat-card dark">
+            <div class="stat-label">Recebido em {{ mes_nome }}</div>
+            <div class="stat-value" style="font-size:22px">R$ {{ total_recebido }}</div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,{{ '#059669, #10b981' if liquido_val >= 0 else '#dc2626, #ef4444' }})">
+            <div class="stat-label">Líquido em {{ mes_nome }}</div>
+            <div class="stat-value" style="font-size:22px">R$ {{ liquido }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span>Aniversários nos próximos 30 dias</span>
+        <span class="badge badge-primary">{{ aniversarios|length }}</span>
+    </div>
+    {% if aniversarios %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Paciente</th>
+                <th>Data</th>
+                <th>Quando</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in aniversarios %}
+        <tr>
+            <td class="fw-bold">{{ p.nome }}</td>
+            <td class="text-muted">{{ p.proximo.strftime('%d/%m') }}</td>
+            <td>
+                {% if p.delta == 0 %}
+                <span class="badge badge-success">Hoje!</span>
+                {% elif p.delta == 1 %}
+                <span class="badge badge-warning">Amanhã</span>
+                {% else %}
+                <span class="badge badge-muted">em {{ p.delta }} dias</span>
+                {% endif %}
+            </td>
+            <td class="text-end">
+                <a href="{{ url_for('pacientes.perfil', id=p.id) }}" class="btn btn-ghost btn-sm">Ver perfil</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted" style="padding:32px">
+        Nenhum aniversário nos próximos 30 dias.
+    </div>
+    {% endif %}
+</div>
+
 {% endblock %}

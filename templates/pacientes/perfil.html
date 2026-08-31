@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}{{ paciente.nome }}{% endblock %}
+{% block page_title %}{{ paciente.nome }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('pacientes.editar', id=paciente.id) }}" class="btn btn-outline btn-sm">Editar</a>
+<a href="{{ url_for('pacientes.dependentes', id=paciente.id) }}" class="btn btn-outline btn-sm">Dependentes</a>
+<a href="{{ url_for('pacientes.dados_nota', id=paciente.id) }}" class="btn btn-outline-primary btn-sm">Dados para Nota</a>
+<form method="post" action="{{ url_for('pacientes.excluir', id=paciente.id) }}" class="d-flex"
+      onsubmit="return confirm('Excluir {{ paciente.nome }}? Esta ação não pode ser desfeita.')">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Excluir</button>
+</form>
+{% endblock %}
+{% block conteudo %}
+<div class="row">
+    <div class="col-4">
+        <div class="card mb-3">
+            <div class="card-header">Informações</div>
+            <div class="card-body">
+                <p class="small text-muted mb-1">Nascimento</p>
+                <p class="fw-bold mb-3">{{ paciente.data_nascimento }}</p>
+                <p class="small text-muted mb-1">Telefone</p>
+                <p class="fw-bold mb-3">{{ paciente.telefone }}</p>
+                <p class="small text-muted mb-1">Valor da Sessão</p>
+                <p class="fw-bold mb-3">R$ {{ paciente.valor_sessao }}</p>
+                {% if paciente.pacote_mensal %}
+                <p class="small text-muted mb-1">Pacote Mensal</p>
+                <p class="fw-bold mb-0">R$ {{ paciente.valor_pacote }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('relatorios.novo') }}?paciente_id={{ paciente.id }}" class="btn btn-primary w-100">
+            + Novo Relatório
+        </a>
+    </div>
+
+    <div class="col-8">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span>Relatórios</span>
+                <form method="get" class="d-flex gap-2">
+                    <input type="date" class="form-control" style="width:auto" name="data" value="{{ data_filtro or '' }}">
+                    <button class="btn btn-outline btn-sm" type="submit">Filtrar</button>
+                    {% if data_filtro %}
+                    <a href="{{ url_for('pacientes.perfil', id=paciente.id) }}" class="btn btn-ghost btn-sm">Limpar</a>
+                    {% endif %}
+                </form>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr><th>Título</th><th>Data</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for r in relatorios %}
+                <tr>
+                    <td>{{ r.titulo }}</td>
+                    <td class="text-muted">{{ r.data }}</td>
+                    <td class="text-end">
+                        <a href="{{ url_for('relatorios.visualizar', id=r.id) }}" class="btn btn-ghost btn-sm">Ver</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-center text-muted" style="padding:24px">Nenhum relatório.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
