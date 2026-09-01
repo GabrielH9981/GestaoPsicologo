@@ -3,11 +3,15 @@
 {% block page_title %}Editar Relatório{% endblock %}
 {% block topbar_actions %}
 <a href="{{ url_for('relatorios.visualizar', id=relatorio.id) }}" class="btn btn-ghost btn-sm">← Voltar</a>
+<button type="submit" form="form-relatorio" class="btn btn-primary btn-sm">Salvar</button>
+{% endblock %}
+{% block head %}
+<link href="{{ url_for('static', filename='css/quill.snow.css') }}" rel="stylesheet">
 {% endblock %}
 {% block conteudo %}
-<div class="card" style="max-width:760px">
+<div class="card" style="max-width:900px">
     <div class="card-body">
-        <form method="post">
+        <form method="post" id="form-relatorio">
             <div class="row">
                 <div class="col-8">
                     <label class="form-label">Título *</label>
@@ -27,14 +31,36 @@
                 </div>
                 <div class="col-12 mt-2">
                     <label class="form-label">Conteúdo *</label>
-                    <textarea class="form-control" name="conteudo" rows="8" required>{{ relatorio.conteudo }}</textarea>
+                    <div style="position:relative; z-index:0">
+                        <div id="editor" style="height:420px"></div>
+                    </div>
+                    <textarea name="conteudo" id="conteudo" style="display:none">{{ relatorio.conteudo }}</textarea>
                 </div>
             </div>
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Salvar</button>
                 <a href="{{ url_for('relatorios.visualizar', id=relatorio.id) }}" class="btn btn-outline">Cancelar</a>
             </div>
+
         </form>
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quill.min.js') }}"></script>
+<script>
+const quill = new Quill('#editor', {
+    theme: 'snow',
+    modules: { toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['blockquote', 'clean']
+    ]}
+});
+quill.root.innerHTML = document.getElementById('conteudo').value;
+document.getElementById('form-relatorio').addEventListener('submit', () => {
+    document.getElementById('conteudo').value = quill.root.innerHTML;
+});
+</script>
 {% endblock %}

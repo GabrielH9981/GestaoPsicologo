@@ -1,10 +1,17 @@
 {% extends 'base.html' %}
 {% block title %}Novo Relatório{% endblock %}
 {% block page_title %}Novo Relatório{% endblock %}
+{% block topbar_actions %}
+<button type="submit" form="form-relatorio" class="btn btn-primary btn-sm">Salvar Relatório</button>
+<a href="{{ url_for('pacientes.lista') }}" class="btn btn-outline btn-sm">Cancelar</a>
+{% endblock %}
+{% block head %}
+<link href="{{ url_for('static', filename='css/quill.snow.css') }}" rel="stylesheet">
+{% endblock %}
 {% block conteudo %}
-<div class="card" style="max-width:760px">
+<div class="card" style="max-width:900px">
     <div class="card-body">
-        <form method="post">
+        <form method="post" id="form-relatorio">
             <div class="row">
                 <div class="col-8">
                     <label class="form-label">Paciente *</label>
@@ -33,14 +40,37 @@
                 </div>
                 <div class="col-12 mt-2">
                     <label class="form-label">Conteúdo *</label>
-                    <textarea class="form-control" name="conteudo" rows="8" required></textarea>
+                    <div style="position:relative; z-index:0">
+                        <div id="editor" style="height:420px"></div>
+                    </div>
+                    <textarea name="conteudo" id="conteudo" style="display:none"></textarea>
                 </div>
             </div>
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Salvar Relatório</button>
                 <a href="{{ url_for('pacientes.lista') }}" class="btn btn-outline">Cancelar</a>
             </div>
+
         </form>
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quill.min.js') }}"></script>
+<script>
+const quill = new Quill('#editor', {
+    theme: 'snow',
+    modules: { toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['blockquote', 'clean']
+    ]}
+});
+document.getElementById('form-relatorio').addEventListener('submit', (e) => {
+    const html = quill.root.innerHTML;
+    if (quill.getText().trim().length === 0) { e.preventDefault(); quill.root.focus(); return; }
+    document.getElementById('conteudo').value = html;
+});
+</script>
 {% endblock %}

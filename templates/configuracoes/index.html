@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% block title %}Configurações{% endblock %}
+{% block page_title %}Configurações{% endblock %}
+{% block conteudo %}
+<form method="post" enctype="multipart/form-data">
+<div class="row">
+
+    <div class="col-6">
+        <!-- IDENTIDADE -->
+        <div class="card mb-4">
+            <div class="card-header">Identidade do App</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Nome do App</label>
+                    <input type="text" name="app_nome" class="form-control" value="{{ cfg.app_nome }}" placeholder="Gestão Psi">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Subtítulo</label>
+                    <input type="text" name="app_subtitulo" class="form-control" value="{{ cfg.app_subtitulo }}" placeholder="Sistema de Pacientes">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Logo</label>
+                    {% if cfg.app_logo %}
+                    <div class="mb-2 d-flex align-items-center gap-3">
+                        <img src="{{ url_for('static', filename='uploads/' + cfg.app_logo) }}"
+                             style="width:48px;height:48px;object-fit:contain;border-radius:8px;border:1px solid var(--border)">
+                        <span class="small text-muted">Logo atual</span>
+                        <a href="{{ url_for('configuracoes.excluir_logo') }}"
+                           class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('Remover a logo?')">Remover</a>
+                    </div>
+                    {% endif %}
+                    <input type="file" name="app_logo" class="form-control" accept=".png,.jpg,.jpeg,.svg,.webp">
+                    <p class="small text-muted mt-1 mb-0">PNG, JPG, SVG ou WebP. Recomendado: 64x64px.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- APARÊNCIA -->
+        <div class="card mb-4">
+            <div class="card-header">Aparência</div>
+            <div class="card-body">
+
+                <div class="mb-4">
+                    <label class="form-label">Tema</label>
+                    <div class="d-flex gap-2">
+                        <label class="tema-option {{ 'active' if cfg.tema == 'claro' }}">
+                            <input type="radio" name="tema" value="claro" {{ 'checked' if cfg.tema == 'claro' }} onchange="previewTema(this)">
+                            <div class="tema-preview tema-claro">
+                                <div class="tema-sidebar"></div>
+                                <div class="tema-content">
+                                    <div class="tema-bar"></div>
+                                    <div class="tema-block"></div>
+                                </div>
+                            </div>
+                            <span>Claro</span>
+                        </label>
+                        <label class="tema-option {{ 'active' if cfg.tema == 'escuro' }}">
+                            <input type="radio" name="tema" value="escuro" {{ 'checked' if cfg.tema == 'escuro' }} onchange="previewTema(this)">
+                            <div class="tema-preview tema-escuro-prev">
+                                <div class="tema-sidebar dark"></div>
+                                <div class="tema-content dark">
+                                    <div class="tema-bar dark"></div>
+                                    <div class="tema-block dark"></div>
+                                </div>
+                            </div>
+                            <span>Escuro</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Paleta de Cores</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        {% set nomes = {'indigo': 'Índigo', 'violet': 'Violeta', 'rose': 'Rosa', 'teal': 'Teal', 'amber': 'Âmbar', 'slate': 'Slate'} %}
+                        {% for key, p in paletas.items() %}
+                        <label class="paleta-option {{ 'active' if cfg.paleta == key }}" title="{{ nomes[key] }}">
+                            <input type="radio" name="paleta" value="{{ key }}" {{ 'checked' if cfg.paleta == key }}>
+                            <div class="paleta-circle" style="background:{{ p.primary }}"></div>
+                            <span>{{ nomes[key] }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Fonte</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        {% for f in fontes %}
+                        <label class="fonte-option {{ 'active' if cfg.fonte == f }}" style="font-family:'{{ f }}'">
+                            <input type="radio" name="fonte" value="{{ f }}" {{ 'checked' if cfg.fonte == f }}>
+                            <span>{{ f }}</span>
+                            <small>Aa Bb</small>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6">
+        <!-- HOME -->
+        <div class="card mb-4">
+            <div class="card-header">Widgets da Home</div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">Escolha quais seções aparecem na página inicial.</p>
+
+                <label class="toggle-row">
+                    <div>
+                        <div class="fw-bold">Cards de Resumo</div>
+                        <div class="small text-muted">Pacientes, sessões, recebido e líquido do mês</div>
+                    </div>
+                    <div class="toggle-switch">
+                        <input type="checkbox" name="home_stats" id="home_stats" {{ 'checked' if cfg.home_stats == '1' }}>
+                        <span class="toggle-slider"></span>
+                    </div>
+                </label>
+
+                <label class="toggle-row">
+                    <div>
+                        <div class="fw-bold">Aniversários</div>
+                        <div class="small text-muted">Pacientes com aniversário próximo</div>
+                    </div>
+                    <div class="toggle-switch">
+                        <input type="checkbox" name="home_aniversarios" id="home_aniversarios" {{ 'checked' if cfg.home_aniversarios == '1' }}>
+                        <span class="toggle-slider"></span>
+                    </div>
+                </label>
+
+                <label class="toggle-row" style="border-bottom:none">
+                    <div>
+                        <div class="fw-bold">Alerta de Extratos Pendentes</div>
+                        <div class="small text-muted">Aviso de extratos com itens sem vínculo</div>
+                    </div>
+                    <div class="toggle-switch">
+                        <input type="checkbox" name="home_extratos" id="home_extratos" {{ 'checked' if cfg.home_extratos == '1' }}>
+                        <span class="toggle-slider"></span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- NOTIFICAÇÕES -->
+        <div class="card mb-4">
+            <div class="card-header">Notificações</div>
+            <div class="card-body">
+                <label class="form-label">Antecedência para aniversários</label>
+                <div class="d-flex gap-2">
+                    {% for dias in [7, 15, 30, 60] %}
+                    <label class="dias-option {{ 'active' if cfg.aniversario_dias == dias|string }}">
+                        <input type="radio" name="aniversario_dias" value="{{ dias }}" {{ 'checked' if cfg.aniversario_dias == dias|string }}>
+                        <span>{{ dias }} dias</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <p class="small text-muted mt-2 mb-0">Aniversários dentro desse período aparecerão na home.</p>
+            </div>
+        </div>
+
+        <!-- DADOS -->
+        <div class="card">
+            <div class="card-header">Exportar / Importar Dados</div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">Use para transferir seus dados entre computadores.</p>
+
+                <div class="mb-4">
+                    <div class="fw-bold mb-1">Exportar</div>
+                    <p class="small text-muted mb-2">Gera um arquivo .sql com todo o banco de dados para download.</p>
+                    <a href="{{ url_for('configuracoes.exportar') }}" class="btn btn-outline btn-sm">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Baixar Backup
+                    </a>
+                </div>
+
+                <div>
+                    <div class="fw-bold mb-1">Importar</div>
+                    <p class="small text-muted mb-2">Selecione um arquivo .sql gerado anteriormente. <strong>Atenção: substitui os dados atuais.</strong></p>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="file" name="sql_file" form="form-importar" class="form-control" accept=".sql" required>
+                        <button type="submit" form="form-importar" class="btn btn-warning btn-sm" style="white-space:nowrap">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Importar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="d-flex justify-content-end mt-2">
+    <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+</div>
+</form>
+
+<form id="form-importar" method="post" action="{{ url_for('configuracoes.importar') }}"
+      enctype="multipart/form-data"
+      onsubmit="return confirm('Isso vai substituir todos os dados atuais. Tem certeza?')"></form>
+{% endblock %}
+{% block scripts %}
+<script>
+function previewTema(radio) {
+    document.documentElement.setAttribute('data-tema', radio.value);
+    document.querySelectorAll('.tema-option').forEach(el => el.classList.remove('active'));
+    radio.closest('.tema-option').classList.add('active');
+}
+document.querySelectorAll('.paleta-option input').forEach(r => {
+    r.addEventListener('change', () => {
+        document.querySelectorAll('.paleta-option').forEach(el => el.classList.remove('active'));
+        r.closest('.paleta-option').classList.add('active');
+    });
+});
+document.querySelectorAll('.fonte-option input').forEach(r => {
+    r.addEventListener('change', () => {
+        document.querySelectorAll('.fonte-option').forEach(el => el.classList.remove('active'));
+        r.closest('.fonte-option').classList.add('active');
+        document.body.style.fontFamily = `'${r.value}', system-ui, sans-serif`;
+    });
+});
+document.querySelectorAll('.dias-option input').forEach(r => {
+    r.addEventListener('change', () => {
+        document.querySelectorAll('.dias-option').forEach(el => el.classList.remove('active'));
+        r.closest('.dias-option').classList.add('active');
+    });
+});
+</script>
+{% endblock %}

@@ -1,35 +1,59 @@
 {% extends 'base.html' %}
 {% block title %}Painel Financeiro{% endblock %}
 {% block page_title %}Painel Financeiro{% endblock %}
-{% block conteudo %}
-<form method="get" class="d-flex gap-2 align-items-end mb-4">
-    <div>
-        <label class="form-label">Mês</label>
-        <select class="form-select" name="mes" style="width:90px">
-            {% for i in range(1, 13) %}
-            <option value="{{ i }}" {{ 'selected' if i == mes }}>{{ '%02d'|format(i) }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div>
-        <label class="form-label">Ano</label>
-        <select class="form-select" name="ano" style="width:100px">
-            {% for a in range(2024, ano_atual + 2) %}
-            <option value="{{ a }}" {{ 'selected' if a == ano }}>{{ a }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <button type="submit" class="btn btn-primary">Filtrar</button>
+{% block topbar_actions %}
+<form method="get" class="d-flex gap-2 align-items-center">
+    <select class="form-select" name="mes" style="width:80px">
+        {% for i in range(1, 13) %}
+        <option value="{{ i }}" {{ 'selected' if i == mes }}>{{ '%02d'|format(i) }}</option>
+        {% endfor %}
+    </select>
+    <select class="form-select" name="ano" style="width:95px">
+        {% for a in range(2024, ano_atual + 2) %}
+        <option value="{{ a }}" {{ 'selected' if a == ano }}>{{ a }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
 </form>
+{% endblock %}
+{% block conteudo %}
 
 <div class="row mb-4">
-    <div class="col-3"><div class="stat-card blue"><div class="stat-label">Total de Pacientes</div><div class="stat-value">{{ total_pacientes }}</div></div></div>
-    <div class="col-3"><div class="stat-card green"><div class="stat-label">Sessões no Mês</div><div class="stat-value">{{ total_sessoes }}</div></div></div>
-    <div class="col-3"><div class="stat-card dark"><div class="stat-label">Total Recebido</div><div class="stat-value" style="font-size:22px">R$ {{ total_financeiro }}</div></div></div>
     <div class="col-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,{{ '#059669, #10b981' if liquido_val >= 0 else '#dc2626, #ef4444' }})">
-            <div class="stat-label">Líquido (Recebido - Gastos)</div>
-            <div class="stat-value" style="font-size:22px">R$ {{ liquido }}</div>
+        <div class="stat-card blue">
+            <div class="stat-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="stat-label">Total de Pacientes</div>
+            <div class="stat-value">{{ total_pacientes }}</div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="stat-card green">
+            <div class="stat-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+            <div class="stat-label">Sessões em {{ '%02d'|format(mes) }}/{{ ano }}</div>
+            <div class="stat-value">{{ total_sessoes }}</div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="stat-card dark">
+            <div class="stat-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="stat-label">Total Recebido</div>
+            <div class="stat-value stat-value-md">R$ {{ total_financeiro }}</div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="stat-card {{ 'liquido-pos' if liquido_val >= 0 else 'liquido-neg' }}">
+            <div class="stat-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
+            <div class="stat-label">Líquido do Mês</div>
+            <div class="stat-value stat-value-md">R$ {{ liquido }}</div>
+            <div class="stat-sub">Gastos: R$ {{ total_gastos }}</div>
         </div>
     </div>
 </div>
@@ -37,24 +61,49 @@
 <div class="row">
     <div class="col-7">
         <div class="card">
-            <div class="card-header">Receitas por Paciente</div>
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span>Receitas por Paciente</span>
+                <span class="badge badge-success">R$ {{ total_financeiro }}</span>
+            </div>
             <table class="table">
                 <thead>
                     <tr>
                         <th>Paciente</th>
                         <th class="text-center">Sessões</th>
-                        <th class="text-end">Recebido (R$)</th>
+                        <th class="text-end">Recebido</th>
                     </tr>
                 </thead>
                 <tbody>
+                {% set max_val = namespace(v=0) %}
                 {% for item in detalhamento %}
+                    {% set v = item.recebido|replace('.','') | replace(',','.') | float %}
+                    {% if v > max_val.v %}{% set max_val.v = v %}{% endif %}
+                {% endfor %}
+                {% for item in detalhamento %}
+                {% set v = item.recebido|replace('.','') | replace(',','.') | float %}
+                {% set pct = ((v / max_val.v) * 100)|int if max_val.v > 0 else 0 %}
                 <tr>
-                    <td>{{ item.nome }}</td>
-                    <td class="text-center">{{ item.qtd_sessoes or '—' }}</td>
-                    <td class="text-end">{{ item.recebido if item.recebido != '0,00' else '—' }}</td>
+                    <td>
+                        <div class="fw-bold">{{ item.nome }}</div>
+                        {% if pct > 0 %}
+                        <div class="receita-bar" style="width:{{ pct }}%"></div>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if item.qtd_sessoes %}
+                        <span class="badge badge-muted">{{ item.qtd_sessoes }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if item.recebido != '0,00' %}
+                        <span class="valor-positivo">R$ {{ item.recebido }}</span>
+                        {% else %}—{% endif %}
+                    </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="3" class="text-center text-muted" style="padding:32px">Nenhum dado para {{ '%02d'|format(mes) }}/{{ ano }}.</td></tr>
+                <tr><td colspan="3" class="text-center text-muted" style="padding:40px">
+                    Nenhum dado para {{ '%02d'|format(mes) }}/{{ ano }}.
+                </td></tr>
                 {% endfor %}
                 </tbody>
             </table>
@@ -65,7 +114,7 @@
         <div class="card">
             <div class="card-header d-flex align-items-center justify-content-between">
                 <span>Gastos do Mês</span>
-                <span class="fw-bold text-danger" style="font-size:13px">- R$ {{ total_gastos }}</span>
+                <span class="badge badge-danger-soft">- R$ {{ total_gastos }}</span>
             </div>
             <table class="table">
                 <tbody>
@@ -73,12 +122,12 @@
                 <tr>
                     <td>
                         <div class="fw-bold">{{ g.nome }}</div>
-                        <div class="small text-muted">{{ g.categoria }}</div>
+                        <span class="badge badge-muted" style="margin-top:3px">{{ g.categoria }}</span>
                     </td>
                     <td class="text-end" style="white-space:nowrap">
-                        R$ {{ '%.2f'|format(g.valor)|replace('.', ',') }}
+                        <span class="valor-negativo">R$ {{ '%.2f'|format(g.valor)|replace('.', ',') }}</span>
                     </td>
-                    <td style="width:40px">
+                    <td style="width:36px">
                         <form method="post" action="{{ url_for('gastos.remover_mes', id=g.id) }}">
                             <input type="hidden" name="mes" value="{{ mes }}">
                             <input type="hidden" name="ano" value="{{ ano }}">
@@ -88,13 +137,23 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="3" class="text-center text-muted" style="padding:20px">Nenhum gasto vinculado.</td></tr>
+                <tr><td colspan="3" class="text-center text-muted" style="padding:24px">Nenhum gasto vinculado.</td></tr>
                 {% endfor %}
                 </tbody>
+                {% if gastos_mes %}
+                <tfoot>
+                    <tr>
+                        <td class="fw-bold text-muted" style="font-size:12px;padding:10px 14px">TOTAL GASTOS</td>
+                        <td class="text-end fw-bold valor-negativo" style="padding:10px 14px">R$ {{ total_gastos }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
             </table>
 
             <div class="card-footer">
-                <button class="btn btn-outline btn-sm w-100" onclick="document.getElementById('form-gasto').classList.toggle('d-none')">
+                <button class="btn btn-outline btn-sm w-100"
+                        onclick="document.getElementById('form-gasto').classList.toggle('d-none')">
                     + Adicionar Gasto
                 </button>
                 <div id="form-gasto" class="d-none mt-3">
@@ -162,7 +221,6 @@ function preencherValor(sel) {
         inpValor.value = (opt.dataset.fixo === '1' && opt.dataset.valor) ? opt.dataset.valor : '';
     }
 }
-// estado inicial: se tiver opcoes no select, começa escondido esperando escolha
 document.addEventListener('DOMContentLoaded', function() {
     const sel = document.getElementById('sel-gasto');
     if (sel) preencherValor(sel);

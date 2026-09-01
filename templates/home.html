@@ -5,10 +5,10 @@
 
 {% if extratos_pendentes %}
 <div class="alert alert-warning d-flex align-items-center justify-content-between mb-4">
-    <span>
-        <strong>Atenção:</strong>
-        {{ extratos_pendentes|length }} extrato{{ 's' if extratos_pendentes|length > 1 }} com itens sem paciente vinculado.
-    </span>
+    <div class="d-flex align-items-center gap-2">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span><strong>Atenção:</strong> {{ extratos_pendentes|length }} extrato{{ 's' if extratos_pendentes|length > 1 }} com itens sem paciente vinculado.</span>
+    </div>
     <div class="d-flex gap-2">
         {% for e in extratos_pendentes %}
         <a href="{{ url_for('extratos.editar', id=e.id) }}" class="btn btn-warning btn-sm">
@@ -20,74 +20,92 @@
 </div>
 {% endif %}
 
+{% if show_stats %}
 <div class="row mb-4">
     <div class="col-3">
         <div class="stat-card blue">
+            <div class="stat-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
             <div class="stat-label">Total de Pacientes</div>
             <div class="stat-value">{{ total_pacientes }}</div>
         </div>
     </div>
     <div class="col-3">
         <div class="stat-card green">
+            <div class="stat-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
             <div class="stat-label">Sessões em {{ mes_nome }}</div>
             <div class="stat-value">{{ total_sessoes }}</div>
         </div>
     </div>
     <div class="col-3">
         <div class="stat-card dark">
+            <div class="stat-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
             <div class="stat-label">Recebido em {{ mes_nome }}</div>
-            <div class="stat-value" style="font-size:22px">R$ {{ total_recebido }}</div>
+            <div class="stat-value stat-value-md">R$ {{ total_recebido }}</div>
         </div>
     </div>
     <div class="col-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,{{ '#059669, #10b981' if liquido_val >= 0 else '#dc2626, #ef4444' }})">
+        <div class="stat-card {{ 'liquido-pos' if liquido_val >= 0 else 'liquido-neg' }}">
+            <div class="stat-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
             <div class="stat-label">Líquido em {{ mes_nome }}</div>
-            <div class="stat-value" style="font-size:22px">R$ {{ liquido }}</div>
+            <div class="stat-value stat-value-md">R$ {{ liquido }}</div>
+            <div class="stat-sub">Gastos: R$ {{ total_gastos }}</div>
         </div>
     </div>
 </div>
+{% endif %}
 
+{% if cfg.home_aniversarios == '1' %}
 <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between">
-        <span>Aniversários nos próximos 30 dias</span>
+        <div class="d-flex align-items-center gap-2">
+            <span style="font-size:18px">🎂</span>
+            <span>Aniversários nos próximos {{ cfg.aniversario_dias }} dias</span>
+        </div>
+        {% if aniversarios %}
         <span class="badge badge-primary">{{ aniversarios|length }}</span>
+        {% endif %}
     </div>
+
     {% if aniversarios %}
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Paciente</th>
-                <th>Data</th>
-                <th>Quando</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
+    <div class="aniversario-list">
         {% for p in aniversarios %}
-        <tr>
-            <td class="fw-bold">{{ p.nome }}</td>
-            <td class="text-muted">{{ p.proximo.strftime('%d/%m') }}</td>
-            <td>
+        <div class="aniversario-row {{ 'aniversario-hoje' if p.delta == 0 else ('aniversario-amanha' if p.delta == 1) }}">
+            <div class="aniversario-avatar">
+                {{ p.nome[0].upper() }}
+            </div>
+            <div class="aniversario-info">
+                <div class="fw-bold">{{ p.nome }}</div>
+                <div class="small text-muted">{{ p.proximo.strftime('%d/%m') }} · {{ p.proximo.year - p.data_nascimento.year }} anos</div>
+            </div>
+            <div class="aniversario-badge">
                 {% if p.delta == 0 %}
-                <span class="badge badge-success">Hoje!</span>
+                <span class="badge-aniversario hoje">🎉 Hoje!</span>
                 {% elif p.delta == 1 %}
-                <span class="badge badge-warning">Amanhã</span>
+                <span class="badge-aniversario amanha">🎈 Amanhã</span>
                 {% else %}
-                <span class="badge badge-muted">em {{ p.delta }} dias</span>
+                <span class="badge-aniversario normal">em {{ p.delta }} dias</span>
                 {% endif %}
-            </td>
-            <td class="text-end">
-                <a href="{{ url_for('pacientes.perfil', id=p.id) }}" class="btn btn-ghost btn-sm">Ver perfil</a>
-            </td>
-        </tr>
+            </div>
+            <a href="{{ url_for('pacientes.perfil', id=p.id) }}" class="btn btn-ghost btn-sm">Ver perfil</a>
+        </div>
         {% endfor %}
-        </tbody>
-    </table>
+    </div>
     {% else %}
-    <div class="text-center text-muted" style="padding:32px">
-        Nenhum aniversário nos próximos 30 dias.
+    <div class="text-center text-muted" style="padding:40px 32px">
+        <div style="font-size:40px;margin-bottom:12px">🎂</div>
+        <div class="fw-bold" style="margin-bottom:4px">Nenhum aniversário nos próximos {{ cfg.aniversario_dias }} dias</div>
+        <div class="small">Os próximos aniversários aparecerão aqui</div>
     </div>
     {% endif %}
 </div>
+{% endif %}
 
 {% endblock %}

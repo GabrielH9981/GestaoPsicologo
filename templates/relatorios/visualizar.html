@@ -14,6 +14,6 @@
         <span>{{ relatorio.data }}</span>
         <span class="badge badge-muted">{{ relatorio.tipo }}</span>
     </div>
-    <div class="card-body" style="white-space:pre-wrap;line-height:1.7">{{ relatorio.conteudo }}</div>
+    <div class="card-body" style="line-height:1.7">{{ relatorio.conteudo | safe }}</div>
 </div>
 {% endblock %}

@@ -1,21 +1,43 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" data-tema="{{ cfg.tema }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gestão Psicológica{% endblock %}</title>
+    {% if cfg.app_logo %}
+    <link rel="icon" href="{{ url_for('static', filename='uploads/' + cfg.app_logo) }}">
+    {% endif %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        :root {
+            --primary:       {{ paleta.primary }};
+            --primary-dark:  {{ paleta.primary_dark }};
+            --primary-light: {{ paleta.primary_light }};
+            --fonte: '{{ cfg.fonte }}', system-ui, sans-serif;
+        }
+        [data-tema="escuro"] {
+            --primary:       {{ paleta.primary }};
+            --primary-dark:  {{ paleta.primary_dark }};
+            --primary-light: {{ paleta.primary_light }};
+        }
+    </style>
     {% block head %}{% endblock %}
 </head>
-<body>
+<body style="font-family: var(--fonte)">
 
 <aside class="sidebar">
     <div class="sidebar-brand">
         <a href="{{ url_for('home') }}" style="text-decoration:none">
-            <span>Gestão Psi</span>
-            <small>Sistema de Pacientes</small>
+            {% if cfg.app_logo %}
+            <img src="{{ url_for('static', filename='uploads/' + cfg.app_logo) }}"
+                 class="sidebar-logo" alt="logo">
+            {% endif %}
+            <div>
+                <span>{{ cfg.app_nome }}</span>
+                <small>{{ cfg.app_subtitulo }}</small>
+            </div>
         </a>
     </div>
 
@@ -54,6 +76,13 @@
            class="{{ 'active' if request.endpoint and request.endpoint.startswith('gastos') }}">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             Controle de Gastos
+        </a>
+
+        <div class="sidebar-section">Sistema</div>
+        <a href="{{ url_for('configuracoes.index') }}"
+           class="{{ 'active' if request.endpoint == 'configuracoes.index' }}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configurações
         </a>
     </nav>
 </aside>
